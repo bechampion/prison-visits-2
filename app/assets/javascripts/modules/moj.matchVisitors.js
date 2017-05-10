@@ -183,6 +183,7 @@
 
       $.each(options, function(i, obj) {
         var contact = $(obj).data('contact');
+
         if ($.inArray(contact.uid.toString(), self.getVisitorIDs()) !== -1) {
           $(obj).prop('disabled', 'disabled');
         } else {
