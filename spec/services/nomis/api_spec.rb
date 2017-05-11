@@ -229,11 +229,21 @@ RSpec.describe Nomis::Api do
       it 'returns the visit_id' do
         expect(subject.visit_id).to eq(5_467)
       end
+
+      it 'instruments the outcome of the call' do
+        subject
+        expect(PVB::Instrumentation.custom_log_items[:book_to_nomis_success]).to eq(true)
+      end
     end
 
     context 'validation error', vcr: { cassette_name: 'book_visit_validation_error' } do
       it 'records the error message' do
         expect(subject.error_message).to eq('Overlapping visit')
+      end
+
+      it 'instruments the outcome of the call' do
+        subject
+        expect(PVB::Instrumentation.custom_log_items[:book_to_nomis_success]).to eq(false)
       end
     end
   end

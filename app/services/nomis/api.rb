@@ -107,12 +107,15 @@ module Nomis
     def book_visit(offender_id:, params:)
       response = @pool.with { |client|
         client.post(
-          "offenders/#{offender_id}/visits/booking",
-          params,
-          idempotent: false)
+          "offenders/#{offender_id}/visits/booking", params, idempotent: false
+        )
       }
 
-      Nomis::Booking.build(response)
+      Nomis::Booking.build(response).tap do |booking|
+        PVB::Instrumentation.append_to_log(
+          book_to_nomis_success: booking.visit_id.present?
+        )
+      end
     end
 
   private
