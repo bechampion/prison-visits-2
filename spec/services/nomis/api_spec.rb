@@ -210,4 +210,23 @@ RSpec.describe Nomis::Api do
       expect(subject.first.id).to eq(first_contact.id)
     end
   end
+
+  describe 'book_visit', vcr: { cassette_name: 'book_visit_happy_path' } do
+    let(:params) do
+      {
+        lead_contact: 12_588,
+        other_contacts: [13_428],
+        slot: '2017-05-15T10:00/16:00',
+        override_restrictions: false
+      }
+    end
+
+    let(:offender_id) { 1_057_307 }
+
+    subject { super().book_visit(offender_id: offender_id, params: params) }
+
+    it 'returns the visit_id' do
+      expect(subject.visit_id).to eq(5_467)
+    end
+  end
 end

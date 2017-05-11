@@ -104,6 +104,17 @@ module Nomis
       Nomis::ContactList.new(response)
     end
 
+    def book_visit(offender_id:, params:)
+      response = @pool.with { |client|
+        client.post(
+          "offenders/#{offender_id}/visits/booking",
+          params,
+          idempotent: false)
+      }
+
+      Nomis::Booking.new(response)
+    end
+
   private
 
     def build_offender(response)
