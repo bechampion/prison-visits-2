@@ -112,7 +112,7 @@ module Nomis
           idempotent: false)
       }
 
-      Nomis::Booking.new(response)
+      Nomis::Booking.build(response)
     end
 
   private

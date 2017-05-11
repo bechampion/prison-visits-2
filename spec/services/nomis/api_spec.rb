@@ -211,7 +211,7 @@ RSpec.describe Nomis::Api do
     end
   end
 
-  describe 'book_visit', vcr: { cassette_name: 'book_visit_happy_path' } do
+  describe 'book_visit' do
     let(:params) do
       {
         lead_contact: 12_588,
@@ -225,8 +225,16 @@ RSpec.describe Nomis::Api do
 
     subject { super().book_visit(offender_id: offender_id, params: params) }
 
-    it 'returns the visit_id' do
-      expect(subject.visit_id).to eq(5_467)
+    context 'happy path', vcr: { cassette_name: 'book_visit_happy_path' } do
+      it 'returns the visit_id' do
+        expect(subject.visit_id).to eq(5_467)
+      end
+    end
+
+    context 'validation error', vcr: { cassette_name: 'book_visit_validation_error' } do
+      it 'records the error message' do
+        expect(subject.error_message).to eq('Overlapping visit')
+      end
     end
   end
 end
