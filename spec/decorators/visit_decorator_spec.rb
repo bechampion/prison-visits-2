@@ -34,4 +34,73 @@ RSpec.describe VisitDecorator do
       end
     end
   end
+
+  describe '#book_to_nomis_opt_in?' do
+    let(:nomis_checker) { instance_double(StaffNomisChecker) }
+
+    describe 'when the book to nomis feature is disabled' do
+      before do
+        switch_off :nomis_staff_book_to_nomis_enabled
+      end
+
+      it { expect(subject.book_to_nomis_opt_in?).to eq(false) }
+    end
+
+    describe 'when the book to nomis feature is enabled' do
+      before do
+        switch_on :nomis_staff_book_to_nomis_enabled
+        switch_feature_flag_with(:staff_prisons_with_book_to_nomis, [visit.prison_name])
+      end
+
+      describe 'when the contact list feature is disabled' do
+        before do
+          switch_feature_flag_with(:staff_prisons_with_nomis_contact_list, [])
+        end
+
+        it { expect(subject.book_to_nomis_opt_in?).to eq(false) }
+      end
+
+      describe 'when the contact list feature is enabled and not working' do
+        before do
+          mock_service_with(StaffNomisChecker, nomis_checker)
+          switch_feature_flag_with(:staff_prisons_with_nomis_contact_list, [visit.prison_name])
+          expect(nomis_checker).to receive(:contact_list_unknown?).and_return(true)
+        end
+
+        it { expect(subject.book_to_nomis_opt_in?).to eq(false) }
+      end
+
+      describe 'when the contact list feature is enabled and working' do
+        before do
+          mock_service_with(StaffNomisChecker, nomis_checker)
+          switch_feature_flag_with(:staff_prisons_with_nomis_contact_list, [visit.prison_name])
+          expect(nomis_checker).to receive(:contact_list_unknown?).and_return(false)
+        end
+
+        describe "when the visit hasn't set the book to nomis opt out flag" do
+          before do
+            visit.book_to_nomis_opt_out = nil
+          end
+
+          it { expect(subject.book_to_nomis_opt_in?).to eq(true) }
+        end
+
+        describe "when the visit has book to nomis opt out flag set to false" do
+          before do
+            visit.book_to_nomis_opt_out = false
+          end
+
+          it { expect(subject.book_to_nomis_opt_in?).to eq(true) }
+        end
+
+        describe "when the visit has book to nomis opt out flag set to true" do
+          before do
+            visit.book_to_nomis_opt_out = true
+          end
+
+          it { expect(subject.book_to_nomis_opt_in?).to eq(false) }
+        end
+      end
+    end
+  end
 end

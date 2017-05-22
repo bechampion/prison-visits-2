@@ -1,6 +1,9 @@
 class Visit < ActiveRecord::Base
   extend FreshnessCalculations
   include PrincipalVisitor
+
+  attr_writer :book_to_nomis_opt_out
+
   belongs_to :prison
   belongs_to :prisoner
   has_many :visitors, dependent: :destroy
@@ -57,6 +60,7 @@ class Visit < ActiveRecord::Base
 
   accepts_nested_attributes_for :messages, :rejection, reject_if: :all_blank
   accepts_nested_attributes_for :visitors, update_only: true
+  accepts_nested_attributes_for :prisoner, update_only: true
   state_machine :processing_state, initial: :requested do
     after_transition do |visit|
       visit.visit_state_changes <<
@@ -82,6 +86,15 @@ class Visit < ActiveRecord::Base
     state :rejected do
       validates :rejection, presence: true
     end
+  end
+
+  def book_to_nomis_opt_out
+    # TODO: Changes in Rails 5 to `ActiveRecord::Type::Boolean.new.cast(string)`
+    ActiveRecord::Type::Boolean.new.type_cast_from_database(@book_to_nomis_opt_out)
+  end
+
+  def book_to_nomis_opt_out?
+    book_to_nomis_opt_out.nil? || book_to_nomis_opt_out == true
   end
 
   def total_number_of_visitors

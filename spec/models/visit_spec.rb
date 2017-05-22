@@ -343,4 +343,40 @@ RSpec.describe Visit, type: :model do
       end
     end
   end
+
+  describe '#allowed_additional_visitors' do
+    let(:visitor1) { FactoryGirl.build_stubbed(:visitor) }
+    let(:visitor2) { FactoryGirl.build_stubbed(:visitor) }
+    let(:visitor3) { FactoryGirl.build_stubbed(:visitor, banned: true) }
+
+    describe 'when there is one visitor' do
+      before do
+        subject.visitors = [visitor1]
+      end
+
+      it 'returns an empty list' do
+        expect(subject.allowed_additional_visitors).to be_empty
+      end
+    end
+
+    describe 'when there is more than one visitor' do
+      before do
+        subject.visitors = [visitor1, visitor2, visitor3]
+      end
+
+      it 'returns a list without the principal visitor' do
+        expect(subject.allowed_additional_visitors).to eq([visitor2])
+      end
+    end
+  end
+
+  describe 'book_to_nomis_opt_out?' do
+    context 'when not set' do
+      before do
+        subject.book_to_nomis_opt_out = nil
+      end
+
+      it { expect(subject).to be_book_to_nomis_opt_out }
+    end
+  end
 end
