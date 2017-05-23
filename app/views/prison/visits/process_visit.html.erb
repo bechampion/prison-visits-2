@@ -11,6 +11,7 @@
     <%= hidden_field_tag 'visit[visitor_ids][]', visitor.id  %>
   <% end %>
   <%= f.hidden_field :prison_id  %>
+  <%# f.hidden_field_tag 'prisoner[nomis_offender_id]', @visit.nomis_offender_id %>
 
   <div class="grid-row push-top">
     <div class="column-one-third">

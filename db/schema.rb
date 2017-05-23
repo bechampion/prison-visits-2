@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170509114346) do
+ActiveRecord::Schema.define(version: 20170523092922) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -60,12 +60,13 @@ ActiveRecord::Schema.define(version: 20170509114346) do
   end
 
   create_table "prisoners", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
-    t.string   "first_name",    null: false
-    t.string   "last_name",     null: false
-    t.date     "date_of_birth", null: false
-    t.string   "number",        null: false
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
+    t.string   "first_name",        null: false
+    t.string   "last_name",         null: false
+    t.date     "date_of_birth",     null: false
+    t.string   "number",            null: false
+    t.datetime "created_at",        null: false
+    t.datetime "updated_at",        null: false
+    t.integer  "nomis_offender_id"
   end
 
   create_table "prisons", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
@@ -166,6 +167,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     t.uuid     "prisoner_id",                                             null: false
     t.string   "locale",                  limit: 2,                       null: false
     t.string   "human_id"
+    t.integer  "nomis_id"
   end
 
   add_index "visits", ["human_id"], name: "index_visits_on_human_id", unique: true, using: :btree
@@ -185,19 +187,19 @@ ActiveRecord::Schema.define(version: 20170509114346) do
   add_foreign_key "visits", "prisoners"
   add_foreign_key "visits", "prisons"
 
-  create_view :count_visits,  sql_definition: <<-SQL
+  create_view "count_visits",  sql_definition: <<-SQL
       SELECT (count(*))::integer AS count
      FROM visits;
   SQL
 
-  create_view :count_visits_by_states,  sql_definition: <<-SQL
+  create_view "count_visits_by_states",  sql_definition: <<-SQL
       SELECT visits.processing_state,
       (count(*))::integer AS count
      FROM visits
     GROUP BY visits.processing_state;
   SQL
 
-  create_view :count_visits_by_prison_and_states,  sql_definition: <<-SQL
+  create_view "count_visits_by_prison_and_states",  sql_definition: <<-SQL
       SELECT prisons.name AS prison_name,
       visits.processing_state,
       count(*) AS count
@@ -206,7 +208,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY visits.processing_state, prisons.name;
   SQL
 
-  create_view :count_visits_by_prison_and_calendar_weeks,  sql_definition: <<-SQL
+  create_view "count_visits_by_prison_and_calendar_weeks",  sql_definition: <<-SQL
       SELECT prisons.name AS prison_name,
       (date_part('isoyear'::text, visits.created_at))::integer AS year,
       (date_part('week'::text, visits.created_at))::integer AS week,
@@ -217,7 +219,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY visits.processing_state, prisons.name, (date_part('week'::text, visits.created_at))::integer, (date_part('isoyear'::text, visits.created_at))::integer;
   SQL
 
-  create_view :count_visits_by_prison_and_calendar_dates,  sql_definition: <<-SQL
+  create_view "count_visits_by_prison_and_calendar_dates",  sql_definition: <<-SQL
       SELECT prisons.name AS prison_name,
       (date_part('year'::text, visits.created_at))::integer AS year,
       (date_part('month'::text, visits.created_at))::integer AS month,
@@ -229,7 +231,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY visits.processing_state, prisons.name, (date_part('day'::text, visits.created_at))::integer, (date_part('month'::text, visits.created_at))::integer, (date_part('year'::text, visits.created_at))::integer;
   SQL
 
-  create_view :count_overdue_visits,  sql_definition: <<-SQL
+  create_view "count_overdue_visits",  sql_definition: <<-SQL
       SELECT count(*) AS count,
       vsc.visit_state
      FROM (visits v
@@ -246,7 +248,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY v.processing_state;
   SQL
 
-  create_view :count_overdue_visits_by_prisons,  sql_definition: <<-SQL
+  create_view "count_overdue_visits_by_prisons",  sql_definition: <<-SQL
       SELECT count(*) AS count,
       vsc.visit_state,
       prisons.name AS prison_name
@@ -267,7 +269,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY prisons.name, v.processing_state;
   SQL
 
-  create_view :count_overdue_visits_by_prison_and_calendar_weeks,  sql_definition: <<-SQL
+  create_view "count_overdue_visits_by_prison_and_calendar_weeks",  sql_definition: <<-SQL
       SELECT count(*) AS count,
       vsc.visit_state,
       prisons.name AS prison_name,
@@ -292,7 +294,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY v.processing_state, prisons.name, (date_part('week'::text, v.created_at))::integer, (date_part('isoyear'::text, v.created_at))::integer;
   SQL
 
-  create_view :count_overdue_visits_by_prison_and_calendar_dates,  sql_definition: <<-SQL
+  create_view "count_overdue_visits_by_prison_and_calendar_dates",  sql_definition: <<-SQL
       SELECT count(*) AS count,
       vsc.visit_state,
       prisons.name AS prison_name,
@@ -319,7 +321,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY v.processing_state, prisons.name, (date_part('day'::text, v.created_at))::integer, (date_part('month'::text, v.created_at))::integer, (date_part('year'::text, v.created_at))::integer;
   SQL
 
-  create_view :timely_and_overdue_by_calendar_weeks,  sql_definition: <<-SQL
+  create_view "timely_and_overdue_by_calendar_weeks",  sql_definition: <<-SQL
       SELECT count(*) AS count,
       'overdue'::text AS status,
       vsc.visit_state,
@@ -345,7 +347,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY prisons.name, vsc.visit_state, (date_part('week'::text, v.created_at))::integer, (date_part('isoyear'::text, v.created_at))::integer;
   SQL
 
-  create_view :visit_counts_by_prison_state_date_and_timely, materialized: true,  sql_definition: <<-SQL
+  create_view "visit_counts_by_prison_state_date_and_timely", materialized: true,  sql_definition: <<-SQL
       WITH visits_timely AS (
            SELECT prisons.name AS prison_name,
               prisons.id AS prison_id,
@@ -372,7 +374,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY v.prison_name, v.prison_id, v.processing_state, v.timely, (v.created_at)::date;
   SQL
 
-  create_view :percentiles_by_calendar_dates, materialized: true,  sql_definition: <<-SQL
+  create_view "percentiles_by_calendar_dates", materialized: true,  sql_definition: <<-SQL
       SELECT (v.created_at)::date AS date,
       percentile_disc((ARRAY[0.95, 0.5])::double precision[]) WITHIN GROUP (ORDER BY (round(date_part('epoch'::text, (vsc.created_at - v.created_at))))::integer) AS percentiles
      FROM (visits v
@@ -384,7 +386,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY (v.created_at)::date;
   SQL
 
-  create_view :rejection_percentage_by_days, materialized: true,  sql_definition: <<-SQL
+  create_view "rejection_percentage_by_days", materialized: true,  sql_definition: <<-SQL
       WITH rejection_reasons AS (
            SELECT rejections.visit_id,
               unnest(rejections.reasons) AS reason
@@ -448,13 +450,13 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY rejected.prison_name, rejected.prison_id, rejected.reason, round((((rejected.rejected_count)::numeric / (total.total_count)::numeric) * (100)::numeric), 2), rejected.date;
   SQL
 
-  create_view :distributions,  sql_definition: <<-SQL
+  create_view "distributions",  sql_definition: <<-SQL
       SELECT percentile_disc((ARRAY[0.95, 0.50])::double precision[]) WITHIN GROUP (ORDER BY date_part('epoch'::text, (vsc.created_at - v.created_at))) AS percentiles
      FROM (visits v
        JOIN visit_state_changes vsc ON (((v.id = vsc.visit_id) AND ((vsc.visit_state)::text = ANY ((ARRAY['booked'::character varying, 'rejected'::character varying])::text[])))));
   SQL
 
-  create_view :distribution_by_prisons,  sql_definition: <<-SQL
+  create_view "distribution_by_prisons",  sql_definition: <<-SQL
       SELECT prisons.name AS prison_name,
       percentile_disc((ARRAY[0.95, 0.50])::double precision[]) WITHIN GROUP (ORDER BY (round(date_part('epoch'::text, (vsc.created_at - v.created_at))))::integer) AS percentiles
      FROM ((visits v
@@ -463,7 +465,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY prisons.name;
   SQL
 
-  create_view :distribution_by_prison_and_calendar_weeks,  sql_definition: <<-SQL
+  create_view "distribution_by_prison_and_calendar_weeks",  sql_definition: <<-SQL
       SELECT prisons.name AS prison_name,
       percentile_disc((ARRAY[0.95, 0.50])::double precision[]) WITHIN GROUP (ORDER BY (round(date_part('epoch'::text, (vsc.created_at - v.created_at))))::integer) AS percentiles,
       (date_part('isoyear'::text, v.created_at))::integer AS year,
@@ -474,7 +476,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY prisons.name, (date_part('week'::text, v.created_at))::integer, (date_part('isoyear'::text, v.created_at))::integer;
   SQL
 
-  create_view :distribution_by_prison_and_calendar_dates,  sql_definition: <<-SQL
+  create_view "distribution_by_prison_and_calendar_dates",  sql_definition: <<-SQL
       SELECT prisons.name AS prison_name,
       percentile_disc((ARRAY[0.95, 0.50])::double precision[]) WITHIN GROUP (ORDER BY (round(date_part('epoch'::text, (vsc.created_at - v.created_at))))::integer) AS percentiles,
       (date_part('year'::text, v.created_at))::integer AS year,
@@ -486,7 +488,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY prisons.name, (date_part('day'::text, v.created_at))::integer, (date_part('month'::text, v.created_at))::integer, (date_part('year'::text, v.created_at))::integer;
   SQL
 
-  create_view :timely_and_overdues,  sql_definition: <<-SQL
+  create_view "timely_and_overdues",  sql_definition: <<-SQL
       SELECT count(*) AS count,
       'overdue'::text AS status,
       prisons.name AS prison_name
@@ -497,7 +499,7 @@ ActiveRecord::Schema.define(version: 20170509114346) do
     GROUP BY prisons.name;
   SQL
 
-  create_view :percentiles_by_prison_and_calendar_dates, materialized: true,  sql_definition: <<-SQL
+  create_view "percentiles_by_prison_and_calendar_dates", materialized: true,  sql_definition: <<-SQL
       SELECT prisons.name AS prison_name,
       prisons.id AS prison_id,
       (timezone('Europe/London'::text, (v.created_at)::timestamp with time zone))::date AS date,

@@ -3,6 +3,7 @@ class Visit < ActiveRecord::Base
   include PrincipalVisitor
 
   attr_writer :book_to_nomis_opt_out
+  attr_accessor :offender_id
 
   belongs_to :prison
   belongs_to :prisoner
@@ -168,6 +169,10 @@ class Visit < ActiveRecord::Base
 
   def additional_visitors
     @additional_visitors ||= visitors.reject { |v| v == principal_visitor }
+  end
+
+  def allowed_additional_visitors
+    additional_visitors.select(&:allowed?)
   end
 
 private

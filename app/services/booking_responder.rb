@@ -8,7 +8,7 @@ class BookingResponder
 
   def respond!
     unless staff_response.valid?
-      return BookingResponse.new(success: false)
+      return BookingResponse.new(errors: [:already_processed])
     end
 
     booking_response = processor.process_request(message)

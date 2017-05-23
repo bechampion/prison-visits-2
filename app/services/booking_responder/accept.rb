@@ -5,7 +5,7 @@ class BookingResponder
         visit.rejection = nil
         visit.accept!
 
-        BookingResponse.new(success: true)
+        BookingResponse.succesful
       end
     end
   end
