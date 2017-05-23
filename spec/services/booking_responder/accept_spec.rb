@@ -55,7 +55,7 @@ RSpec.describe BookingResponder::Accept do
     before do
       visit.book_to_nomis_opt_out = false
       mock_service_with(Nomis::Booker, booker)
-      allow(booker).to receive(:book)
+      allow(booker).to receive(:book).and_return(BookingResponse.succesful)
     end
 
     it 'attempts to book the visit through the booker' do

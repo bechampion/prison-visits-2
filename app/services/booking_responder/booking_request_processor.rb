@@ -7,6 +7,7 @@ class BookingResponder
     def process_request(message_for_visitor = nil)
       ActiveRecord::Base.transaction do
         self.booking_response = yield if block_given?
+        raise ActiveRecord::Rollback unless booking_response.success?
 
         if message_for_visitor
           create_message(message_for_visitor, visit.last_visit_state)
