@@ -5,6 +5,8 @@ class StaffResponse
   attr_accessor :visit, :user
 
   before_validation :check_slot_available
+  before_validation :check_lead_visitor_not_banned
+  before_validation :check_lead_visitor_on_list
 
   validate :validate_visit_is_processable
   validate :visit_or_rejection_validity
@@ -136,6 +138,18 @@ privileged_allowance_expires_on])
   def clear_allowance_renews_on_date
     unless rejection.reasons.include?(Rejection::NO_ALLOWANCE)
       rejection.allowance_renews_on = nil
+    end
+  end
+
+  def check_lead_visitor_not_banned
+    if visit.principal_visitor.banned?
+      rejection.reasons << Rejection::BANNED
+    end
+  end
+
+  def check_lead_visitor_on_list
+    if visit.principal_visitor.not_on_list?
+      rejection.reasons << Rejection::NOT_ON_THE_LIST
     end
   end
 end

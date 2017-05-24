@@ -22,7 +22,7 @@ RSpec.shared_context 'staff response setup' do
         }
       },
       visitors_attributes:  {
-        '0' => visit.principal_visitor.attributes.slice('id', 'banned', 'not_on_list')
+        '0' => visit.principal_visitor.attributes.slice('id', 'banned', 'not_on_list', 'nomis_id')
       }
     }
   end
