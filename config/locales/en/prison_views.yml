@@ -121,6 +121,11 @@ en:
         slot_not_available: Fully booked
         add_a_message: Add a message
         rejection_warning: This visit will be rejected and an email will be sent to the lead visitor
+        book_to_nomis_true_html: |
+          If the visit is booked successfully, it will be copied to NOMIS.
+        book_to_nomis_false_html: |
+          We can't copy this visit to NOMIS right now. If the visit is booked successfully, please record it manually.
+        dont_book_to_nomis: Don't automatically copy this visit to NOMIS
       prisoner_details:
         title: Prisoner details
         prisoner_name: Prisoner name
