@@ -45,14 +45,21 @@ class VisitDecorator < Draper::Decorator
     @processed_at ||= last_visit_state_change&.created_at || object.created_at
   end
 
+  def contact_list_working?
+    Nomis::Feature.contact_list_enabled?(object.prison_name) && !contact_list_unknown?
+  end
+
   def book_to_nomis_opt_in?
     return false unless Nomis::Feature.book_to_nomis_enabled?(object.prison_name)
-
-    if !Nomis::Feature.contact_list_enabled?(object.prison_name) || contact_list_unknown?
-      return false
-    end
+    return false unless contact_list_working?
 
     object.book_to_nomis_opt_out.nil? || book_to_nomis_opt_out == false
+  end
+
+  def nomis_offender_id
+    if Nomis::Feature.prisoner_check_enabled?
+      nomis_checker.offender.id
+    end
   end
 
 private

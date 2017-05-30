@@ -11,7 +11,10 @@
     <%= hidden_field_tag 'visit[visitor_ids][]', visitor.id  %>
   <% end %>
   <%= f.hidden_field :prison_id  %>
-  <%# f.hidden_field_tag 'prisoner[nomis_offender_id]', @visit.nomis_offender_id %>
+
+  <%= f.fields_for :prisoner, @visit.prisoner do |pf| %>
+    <%= pf.hidden_field :nomis_offender_id, value: @visit.nomis_offender_id %>
+  <% end %>
 
   <div class="grid-row push-top">
     <div class="column-one-third">
@@ -72,19 +75,22 @@
     <% if Nomis::Feature.book_to_nomis_enabled?(@visit.prison_name) %>
       <div class="panel">
         <%= content_tag 'p', t(".book_to_nomis_#{@visit.book_to_nomis_opt_in?}_html") %>
-        <% if @visit.book_to_nomis_opt_in? %>
+        <% if @visit.contact_list_working? %>
           <label class="block-label push-bottom">
-            <%= f.check_box :book_to_nomis %>
+            <%= f.check_box :book_to_nomis_opt_out, checked: !@visit.book_to_nomis_opt_in? %>
             <%= t('.dont_book_to_nomis') %>
           </label>
+        <% else %>
+          <%= f.hidden_field :book_to_nomis_opt_out, value: true %>
         <% end %>
       </div>
+    <% else %>
+      <%= f.hidden_field :book_to_nomis_opt_out, value: true %>
     <% end %>
   </div>
 
   <div class="form-group">
     <p><%= link_to t('.email_preview'), prison_visit_email_preview_path(@visit), class: 'js-LinkPreview', target: '_blank' %></p>
     <p><%= f.submit t('.submit'), class: 'button button-primary' %></p>
-
   </div>
 <% end %>

@@ -7,12 +7,13 @@ class Prison::VisitsController < ApplicationController
 
   def process_visit
     @visit = load_visit.decorate
+    @booking_response = BookingResponse.succesful
   end
 
   def update
-    booking_response = booking_responder.respond!
-    if booking_response.success?
-      flash[:notice] = t('process_thank_you', scope: %i[prison flash])
+    @booking_response = booking_responder.respond!
+    if @booking_response.success?
+      flash[:notice] = t('process_thank_you', scope: [:prison, :flash])
       redirect_to prison_inbox_path
     else
       # Always decorate object last once they've been mutated

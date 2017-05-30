@@ -7,7 +7,6 @@ RSpec.feature 'Processing a request - Acceptance', js: true do
   include_context 'process request setup'
 
   context 'with visitor contact list', vcr: { cassette_name: 'process_happy_path_with_contact_list' } do
-    # Leicester has contact list enabled in 'test'
     let(:prison) do
       create(:prison,
         name: 'Leicester',
@@ -27,7 +26,72 @@ RSpec.feature 'Processing a request - Acceptance', js: true do
       switch_feature_flag_with(:staff_prisons_with_nomis_contact_list, [prison.name])
     end
 
-    scenario 'accepting a booking' do
+    context 'with book to nomis enabled' do
+      before do
+        switch_on :nomis_staff_book_to_nomis_enabled
+        switch_feature_flag_with(:staff_prisons_with_book_to_nomis, [prison.name])
+      end
+
+      scenario 'accepting a booking', vcr: { cassette_name: 'book_to_nomis' } do
+        vst.update!(slot_option_0: '2017-06-20T10:00/11:00')
+
+        visit prison_visit_process_path(vst, locale: 'en')
+
+        # Renders the form again
+        expect(page).to have_text('Visit details')
+
+        expect(page).to have_content("The prisoner date of birth, prisoner number and prison name have been verified.")
+        expect(page).to have_css('.choose-date .tag--verified', text: 'Prisoner available')
+
+        choose_date
+
+        fill_in 'Reference number',   with: '12345678'
+        fill_in 'Message (optional)', with: 'A staff message'
+
+        within "#visitor_#{visitor.id}" do
+          select 'IRMA ITSU - 03/04/1975', from: 'Match to contact list'
+        end
+
+        expect(page).to have_unchecked_field("Don't automatically copy this visit to NOMIS")
+        click_button 'Process'
+
+        expect(page).to have_text('Thank you for processing the visit')
+
+        vst.reload
+        expect(vst).to be_booked
+        expect(vst.nomis_id).to eq(5493)
+      end
+
+      scenario 'opting out of booking to nomis' do
+        visit prison_visit_process_path(vst, locale: 'en')
+
+        # Renders the form again
+        expect(page).to have_text('Visit details')
+
+        expect(page).to have_content("The prisoner date of birth, prisoner number and prison name have been verified.")
+        expect(page).to have_css('.choose-date .tag--verified', text: 'Prisoner available')
+
+        choose_date
+
+        fill_in 'Reference number',   with: '12345678'
+        fill_in 'Message (optional)', with: 'A staff message'
+
+        within "#visitor_#{visitor.id}" do
+          select 'IRMA ITSU - 03/04/1975', from: 'Match to contact list'
+        end
+
+        check "Don't automatically copy this visit to NOMIS"
+        click_button 'Process'
+
+        expect(page).to have_text('Thank you for processing the visit')
+
+        vst.reload
+        expect(vst).to be_booked
+        expect(vst.nomis_id).to be_nil
+      end
+    end
+
+    scenario 'accepting a booking using the contact list' do
       visit prison_visit_process_path(vst, locale: 'en')
       click_button 'Process'
 

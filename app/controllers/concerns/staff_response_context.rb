@@ -37,6 +37,7 @@ private
       :reference_no, :slot_granted, :closed, :slot_option_0,
       :slot_option_1, :slot_option_2, :prison_id, :prisoner_id,
       :principal_visitor_id, :processing_state, :id,
+      :book_to_nomis_opt_out,
       visitor_ids: [],
       rejection_attributes: [
         allowance_renews_on: %i[day month year],
@@ -47,8 +48,9 @@ private
         :nomis_id,
         :banned,
         :not_on_list,
-        banned_until: %i[day month year]
-      ]
+        banned_until: [:day, :month, :year]
+      ],
+      prisoner_attributes: [:nomis_offender_id]
     )
   end
   # rubocop:enable Metrics/MethodLength
