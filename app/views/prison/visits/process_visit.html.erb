@@ -73,7 +73,7 @@
       </div>
     </div>
     <% if Nomis::Feature.book_to_nomis_enabled?(@visit.prison_name) %>
-      <div class="panel">
+      <div class="panel" id="nomis-opt-out">
         <%= content_tag 'p', t(".book_to_nomis_#{@visit.book_to_nomis_opt_in?}_html") %>
         <% if @visit.contact_list_working? %>
           <label class="block-label push-bottom">

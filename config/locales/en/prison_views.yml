@@ -24,9 +24,23 @@ en:
       message_create_error: Your message couldn't be saved
       message_created: Message created
       no_cancellation_reason: Please provide a cancellation reason
-      process_required: Please either reject or accept the booking
+      process_required_html: |
+        <h1 class="heading-medium error-summary-heading" id="error-summary-heading">
+          This visit wasn't booked.
+        </h1>
+        <p>Please either reject or accept the booking</p>
       at_least_one_estate: You must select at least one estate
       invalid_estate_selection: You don't access to these estates
+      nomis_validation_error_html: |
+        <h1 class="heading-medium error-summary-heading" id="error-summary-heading">
+          This visit wasn't booked.
+        </h1>
+        <p>Choose a rejection reason to reject the visit or <a href="#nomis-opt-out">book this visit anyway</a>.</p>
+      nomis_api_error_html: |
+        <h1 class="heading-medium error-summary-heading" id="error-summary-heading">
+          We can't connect to NOMIS right now.
+        </h1>
+        <p>Try again later, or <a href="#nomis-opt-out">book this visit without recording to NOMIS</a>.</p>
     feedbacks:
       new:
         title: Contact us
