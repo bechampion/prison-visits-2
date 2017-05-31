@@ -217,7 +217,8 @@ RSpec.describe Nomis::Api do
         lead_contact: 12_588,
         other_contacts: [13_428],
         slot: '2017-05-15T10:00/16:00',
-        override_restrictions: false
+        override_restrictions: false,
+        client_unique_ref: 'visit_id_1234'
       }
     end
 
@@ -244,6 +245,12 @@ RSpec.describe Nomis::Api do
       it 'instruments the outcome of the call' do
         subject
         expect(PVB::Instrumentation.custom_log_items[:book_to_nomis_success]).to eq(false)
+      end
+    end
+
+    context 'duplicate post', vcr: { cassette_name: 'book_visit_duplicate_error' } do
+      it 'records the error message' do
+        expect(subject.error_message).to eq('Duplicate post')
       end
     end
   end

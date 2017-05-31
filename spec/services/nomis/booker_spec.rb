@@ -48,7 +48,8 @@ RSpec.describe Nomis::Booker do
                  lead_contact: lead_visitor.nomis_id,
                  other_visitors: [additional_visitor.nomis_id],
                  slot: visit.slot_granted.to_s,
-                 override_restrictions: false
+                 override_restrictions: false,
+                 client_unique_ref: visit.id
                }).and_return(Nomis::Booking.new)
 
         subject.book

@@ -7,21 +7,27 @@ class Prison::VisitsController < ApplicationController
 
   def process_visit
     @visit = load_visit.decorate
-    @booking_response = BookingResponse.succesful
   end
 
+  # rubocop:disable Metrics/MethodLength
   def update
-    @booking_response = booking_responder.respond!
-    if @booking_response.success?
+    booking_response = booking_responder.respond!
+    if booking_response.success?
       flash[:notice] = t('process_thank_you', scope: [:prison, :flash])
       redirect_to prison_inbox_path
     else
-      # Always decorate object last once they've been mutated
-      @visit = load_visit.decorate
-      flash[:alert] = t('process_required', scope: %i[prison flash])
-      render :process_visit
+      booking_response_flash(booking_response)
+
+      if booking_response.already_processed?
+        redirect_to prison_inbox_path
+      else
+        # Always decorate object last once they've been mutated
+        @visit = load_visit.decorate
+        render :process_visit
+      end
     end
   end
+  # rubocop:enable Metrics/MethodLength
 
   def nomis_cancelled
     load_visit.confirm_nomis_cancelled
@@ -51,6 +57,14 @@ class Prison::VisitsController < ApplicationController
   end
 
 private
+
+  def booking_response_flash(booking_response)
+    if booking_response.already_processed?
+      flash[:notice] = t('already_processed', scope: [:prison, :flash])
+    else
+      flash[:alert] = t('process_required_html', scope: [:prison, :flash])
+    end
+  end
 
   def visit_is_processable
     unless load_visit.processable?

@@ -1,4 +1,6 @@
 class BookingResponse
+  ALREADY_PROCESSED_ERROR = 'Duplicate post'
+
   def self.succesful
     new(errors: [])
   end
@@ -16,6 +18,10 @@ class BookingResponse
 
   def booking_api_error
     !!@booking_api_error
+  end
+
+  def already_processed?
+    errors.include?(ALREADY_PROCESSED_ERROR)
   end
 
 private

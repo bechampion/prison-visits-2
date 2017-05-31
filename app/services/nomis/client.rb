@@ -87,7 +87,7 @@ module Nomis
         # TODO: Add 409 when idempotency key is ready
         # TODO: Change 400 to 422 when api is updated.
         # Currently it returns 400 for validation errors.
-        [200, 400]
+        [200, 400, 409]
       end
     end
 
