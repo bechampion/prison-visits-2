@@ -1,30 +1,44 @@
 class BookingResponse
-  ALREADY_PROCESSED_ERROR = 'Duplicate post'
+  ALREADY_PROCESSED_ERROR = 'already_processed'.freeze
+  PROCESS_REQUIRED_ERROR = 'process_required'.freeze
+  NOMIS_VALIDATION_ERROR = 'nomis_validation_error'.freeze
+  NOMIS_API_ERROR = 'nomis_api_error'.freeze
+
+  attr_reader :error
 
   def self.succesful
-    new(errors: [])
+    new(nil)
   end
 
-  attr_reader :errors
-  attr_writer :booking_api_error
+  def self.process_required
+    new(PROCESS_REQUIRED_ERROR)
+  end
 
-  def initialize(errors: [])
-    self.errors = errors
+  def self.nomis_validation_error
+    new(NOMIS_VALIDATION_ERROR)
+  end
+
+  def self.nomis_api_error
+    new(NOMIS_API_ERROR)
+  end
+
+  def self.already_processed
+    new(ALREADY_PROCESSED_ERROR)
+  end
+
+  def initialize(error)
+    self.error = error
   end
 
   def success?
-    errors.empty?
-  end
-
-  def booking_api_error
-    !!@booking_api_error
+    error.nil?
   end
 
   def already_processed?
-    errors.include?(ALREADY_PROCESSED_ERROR)
+    error == ALREADY_PROCESSED_ERROR
   end
 
 private
 
-  attr_writer :errors
+  attr_writer :error
 end

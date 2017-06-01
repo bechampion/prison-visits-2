@@ -13,7 +13,8 @@ en:
       telephone: Telephone script
   prison:
     flash:
-      already_processed: Visit can't be processed
+      already_processed_html: |
+        Visit can't be processed
       process_thank_you: Thank you for processing the visit
       visit_cancelled: The visit has been cancelled
       already_cancelled: The visit is no longer cancellable

@@ -12,6 +12,7 @@ class Prison::VisitsController < ApplicationController
   # rubocop:disable Metrics/MethodLength
   def update
     booking_response = booking_responder.respond!
+
     if booking_response.success?
       flash[:notice] = t('process_thank_you', scope: [:prison, :flash])
       redirect_to prison_inbox_path
@@ -59,16 +60,12 @@ class Prison::VisitsController < ApplicationController
 private
 
   def booking_response_flash(booking_response)
-    if booking_response.already_processed?
-      flash[:notice] = t('already_processed', scope: [:prison, :flash])
-    else
-      flash[:alert] = t('process_required_html', scope: [:prison, :flash])
-    end
+    flash[:alert] = t("#{booking_response.error}_html", scope: [:prison, :flash])
   end
 
   def visit_is_processable
     unless load_visit.processable?
-      flash[:notice] = t('already_processed', scope: %i[prison flash])
+      flash[:alert] = t('already_processed_html', scope: [:prison, :flash])
       redirect_to prison_inbox_path
     end
   end

@@ -1,42 +1,46 @@
 module Nomis
   class Booker
+    ALREADY_PROCESSED = 'Duplicate post'.freeze
+
     def initialize(visit)
       self.visit = visit
+      self.api_error = false
     end
 
     def book
       call_api
-      parse_booking if booking
-      booking_response
+      build_booking_response
+    end
+
+    def nomis_visit_id
+      booking.visit_id
     end
 
   private
 
-    attr_accessor :visit, :booking
+    attr_accessor :visit, :booking, :api_error
 
     def call_api
       self.booking = Nomis::Api.
         instance.
         book_visit(offender_id: offender_id, params: booking_params)
-    rescue Nomis::APIError => e
-      booking_response.booking_api_error = true
-      booking_response.errors << e.message
+    rescue Nomis::APIError
+      self.api_error = true
     end
 
-    def parse_booking
-      if booking.visit_id
-        visit.update(nomis_id: booking.visit_id)
-      else
-        booking_response.errors << booking.error_message
-      end
+    def build_booking_response
+      return BookingResponse.nomis_api_error if api_error
+      return BookingResponse.succesful if booking.visit_id
+      return BookingResponse.already_processed if already_processed?
+      BookingResponse.nomis_validation_error
+    end
+
+    def already_processed?
+      booking.error_message == ALREADY_PROCESSED
     end
 
     def offender_id
       visit.prisoner.nomis_offender_id
-    end
-
-    def booking_response
-      @booking_response ||= BookingResponse.new
     end
 
     def booking_params

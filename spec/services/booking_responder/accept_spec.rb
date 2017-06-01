@@ -49,18 +49,35 @@ RSpec.describe BookingResponder::Accept do
     it_behaves_like 'process the request'
   end
 
-  describe 'with book to nomis' do
-    let(:booker) { double(Nomis::Booker) }
+  describe 'with book to nomis succesfully' do
+    let(:booker) { instance_double(Nomis::Booker, nomis_visit_id: 12_345) }
 
     before do
       visit.book_to_nomis_opt_out = false
       mock_service_with(Nomis::Booker, booker)
-      allow(booker).to receive(:book).and_return(BookingResponse.succesful)
+      expect(booker).to receive(:book).and_return(BookingResponse.succesful)
     end
 
-    it 'attempts to book the visit through the booker' do
-      expect(booker).to receive(:book).and_return(BookingResponse.succesful)
-      subject.process_request
+    it 'book the visit to nomis and update the nomis id' do
+      expect {
+        subject.process_request
+      }.to change { visit.reload.nomis_id }.to(booker.nomis_visit_id)
+    end
+
+    it_behaves_like 'process the request'
+  end
+
+  describe 'with book to nomis with errors' do
+    let(:booker) { instance_double(Nomis::Booker) }
+
+    before do
+      visit.book_to_nomis_opt_out = false
+      mock_service_with(Nomis::Booker, booker)
+      expect(booker).to receive(:book).and_return(BookingResponse.nomis_api_error)
+    end
+
+    it 'book the visit to nomis and update the nomis id' do
+      expect { subject.process_request }.not_to change { visit.reload.nomis_id }
     end
 
     it_behaves_like 'process the request'

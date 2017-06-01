@@ -1,19 +1,34 @@
 require 'rails_helper'
 
 RSpec.describe BookingResponse do
-  subject { described_class.new(errors: errors) }
+  describe 'succesful' do
+    subject { described_class.succesful }
 
-  describe '#already_processed?' do
-    context 'when it has no duplicate post error' do
-      let(:errors) { 'random' }
+    it { is_expected.to be_success }
+    it { expect(subject.error).to be_nil }
+  end
 
-      it { expect(subject).not_to be_already_processed }
-    end
+  describe 'already processed' do
+    subject { described_class.process_required }
 
-    context "when it has a 'Duplicate post'" do
-      let(:errors) { 'Duplicate post' }
+    it { expect(subject.error).to eq(described_class::PROCESS_REQUIRED_ERROR) }
+  end
 
-      it { expect(subject).to be_already_processed }
-    end
+  describe 'nomis_api_error' do
+    subject { described_class.nomis_api_error }
+
+    it { expect(subject.error).to eq(described_class::NOMIS_API_ERROR) }
+  end
+
+  describe 'already_processed' do
+    subject { described_class.already_processed }
+
+    it { expect(subject.error).to eq(described_class::ALREADY_PROCESSED_ERROR) }
+  end
+
+  describe 'nomis_validation_error' do
+    subject { described_class.nomis_validation_error }
+
+    it { expect(subject.error).to eq(described_class::NOMIS_VALIDATION_ERROR) }
   end
 end
