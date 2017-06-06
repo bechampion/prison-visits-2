@@ -47,6 +47,7 @@ private
         :nomis_id,
         :banned,
         :not_on_list,
+        :validate_contact_list_matching,
         banned_until: %i[day month year]
       ]
     )

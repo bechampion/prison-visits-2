@@ -84,6 +84,7 @@ RSpec.describe StaffResponse, type: :model do
       before do
         params[:rejection_attributes]['reasons'] = ['prisoner_moved']
       end
+
       it 'is invalid' do
         is_expected.to be_invalid
         expect(subject.errors.full_messages).
@@ -91,6 +92,24 @@ RSpec.describe StaffResponse, type: :model do
             I18n.t('must_reject_or_accept_visit',
               scope: %i[staff_response errors])
           ])
+      end
+
+      context 'when a visitor has a validation error' do
+        before do
+          params[:visitors_attributes]['0'][:validate_contact_list_matching] = 'true'
+          params[:visitors_attributes]['0'][:nomis_id] = nil
+          params[:visitors_attributes]['0'][:not_on_list] = nil
+        end
+
+        it 'is invalid' do
+          is_expected.to be_invalid
+
+          expect(subject.errors.full_messages).
+            to include(
+              I18n.t('visitors_invalid',
+                scope: %i[activemodel errors models staff_response attributes base])
+          )
+        end
       end
     end
 
@@ -120,7 +139,7 @@ RSpec.describe StaffResponse, type: :model do
 
         before do
           unlisted_visitor.not_on_list = true
-          params[:visitors_attributes]['1'] = unlisted_visitor.attributes.slice('id', 'banned', 'not_on_list')
+          params[:visitors_attributes]['1'] = unlisted_visitor.attributes.slice(*visitor_fields)
           params[:visitors_attributes]['0'][:not_on_list] = true
           subject.valid?
         end
@@ -138,7 +157,7 @@ RSpec.describe StaffResponse, type: :model do
 
         before do
           unlisted_visitor.banned = true
-          params[:visitors_attributes]['1'] = unlisted_visitor.attributes.slice('id', 'banned', 'not_on_list')
+          params[:visitors_attributes]['1'] = unlisted_visitor.attributes.slice(*visitor_fields)
           params[:visitors_attributes]['0'][:banned] = true
           subject.valid?
         end
@@ -156,7 +175,7 @@ RSpec.describe StaffResponse, type: :model do
 
       before do
         params[:visitors_attributes]['0'][:banned] = true
-        params[:visitors_attributes]['1'] = minor_visitor.attributes.slice('id', 'banned', 'not_on_list')
+        params[:visitors_attributes]['1'] = minor_visitor.attributes.slice(*visitor_fields)
         subject.valid?
       end
 
@@ -186,15 +205,18 @@ RSpec.describe StaffResponse, type: :model do
         'slot_option_2'          => visit.slot_option_2,
         'slot_granted'           => visit.slot_option_0,
         'visitors_attributes'    => visit.visitors.each_with_object({}).with_index do |(visitor, h), i|
-          h[i.to_s] = visitor.slice('id', 'not_on_list', 'banned')
+          h[i.to_s] = visitor.slice(*visitor_fields)
           h[i.to_s]['banned_until'] = visitor.banned_until.to_s
+          h[i.to_s]['validate_contact_list_matching'] = visitor.validate_contact_list_matching?.to_s
           h
         end
       }
     end
 
     context 'with no rejection' do
-      before do subject.valid?  end
+      before do
+        subject.valid?
+      end
 
       it 'has all the required serialized attributes' do
         expect(subject.email_attrs).to eq(expected_params)
