@@ -76,10 +76,10 @@
       <div class="panel" id="nomis-opt-out">
         <%= content_tag 'p', t(".book_to_nomis_#{@visit.book_to_nomis_opt_in?}_html") %>
         <% if @visit.contact_list_working? %>
-          <label class="block-label push-bottom">
+          <div class="multiple-choice">
             <%= f.check_box :book_to_nomis_opt_out, checked: !@visit.book_to_nomis_opt_in? %>
-            <%= t('.dont_book_to_nomis') %>
-          </label>
+            <%= f.label :book_to_nomis_opt_out, t('.dont_book_to_nomis') %>
+          </div>
         <% else %>
           <%= f.hidden_field :book_to_nomis_opt_out, value: true %>
         <% end %>
